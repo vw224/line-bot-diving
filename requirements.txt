@@ -1,7 +1,7 @@
-line-bot-sdk==1.13.0
-flask==1.1.1
-gevent==1.4.0
+line-bot-sdk
+flask
+gevent
 gunicorn
 simplejson
-requests==2.22.0
+requests
 honcho
