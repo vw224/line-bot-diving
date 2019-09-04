@@ -58,7 +58,7 @@ def callback():
 def handle_message(event):
     msg = event.message.text
     keyWordWeather = u"天氣"   #wb
-    if(keyWordWeather not in msg):
+    if keyWordWeather not in msg:
 
         r = '我看不懂你說什麼'
 
@@ -76,18 +76,6 @@ def handle_message(event):
 
 if __name__ == "__main__":
     app.run()
-
-git clone https://github.com/Nienzu/LINE-wb-flask
-brew cask install ngrok libevent
-pip install -r requirements.txt
-heroku create 
-git add .
-git commit -m "Fast Deploy"
-git push heroku master
-
-heroku config:set LINE_CHANNEL_SECRET=你LINE的 secret key
-heroku config:set LINE_CHANNEL_ACCESS_TOKEN=your-LINE-token
-heroku config:set APIKEY=你從中央氣象局拿到的api-key
 
 
 
