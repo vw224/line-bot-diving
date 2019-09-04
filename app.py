@@ -55,27 +55,48 @@ def callback():
 
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    msg = event.message.text
-    keyWordWeather = u"天氣"   #wb
-    if keyWordWeather not in msg:
+def message_text(event):
+    keyWordWeather = u"天氣"
+    #If user don't want to know weather, echo what user input instead.And return t
+    if(keyWordWeather not in event.message.text):
+       line_bot_api.reply_message(event.reply_token,TextMessage(text=event.message.text))
+       return
+    #find the location users ask in the string of user input  
+    keyWordLocation = u"市縣"
+    if event.message.text.find(keyWordLocation[0])>0:
+        locationIndex = event.message.text.find(keyWordLocation[0])
+    else :
+        locationIndex = event.message.text.find(keyWordLocation[1])
 
-        r = '我看不懂你說什麼'
-
-        if msg in ['hi', 'HI', 'Hi']:
-            r = '嗨'
-        elif msg in ['訂位']:
-            r = '您想訂位，是嗎?'
-
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=r))
-
-        return
-
+    locationIndexStart = locationIndex - 2
+    locationIndexEnd = locationIndex + 1
+    location = event.message.text[locationIndexStart:locationIndexEnd]
+    url="http://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?locationName="+location+"&elementName=Wx"
+    header = {"Authorization":os.getenv('APIKEY', None)}
+    origin = requests.get(url,headers=header)
+    body = json.loads(origin.content)
+    #Determind which prediction of time interval for the weather of the location.
+    try:
+        timeIntervalPredict = body['records']['location'][0]['weatherElement'][0]['time']
+        for possibleTime in timeIntervalPredict:
+            #type of time info: string -> datetime
+            timeInterval = datetime.strptime(possibleTime['startTime'],"%Y-%m-%d %H:%M:%S")
+            if(datetime > timeInterval):
+                discription = possibleTime['parameter']['paramterName']
+        reply= location + u"的天氣為" + discription
+        line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
+    except:
+        line_bot_api.reply_message(event.reply_token,TextMessage(text="yo~台灣沒這個地方～\n或是請愛用繁體「臺」ex「臺南市」"))
 
 if __name__ == "__main__":
-    app.run()
+    arg_parser = ArgumentParser(
+        usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
+    )
+    arg_parser.add_argument('-p', '--port', default=8000, help='port')
+    arg_parser.add_argument('-d', '--debug', default=False, help='debug')
+    options = arg_parser.parse_args()
+
+    app.run(debug=options.debug, port=options.port)
 
 
 
